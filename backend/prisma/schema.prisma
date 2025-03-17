@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String             @id @default(cuid())
+  username          String             @unique
+  fullName          String
+  password          String
+  gender            Gender
+  profilePic        String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  changes           ChangeHistory[]
+  SubtitleDocument  SubtitleDocument[]
+  subtitleDocuments SubtitleDocument[] @relation("DocumentContributors")
+}
+
+model SubtitleDocument {
+  id             String          @id @default(cuid())
+  name           String
+  createdById    String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  subtitleBlocks SubtitleBlock[]
+  createdBy      User            @relation(fields: [createdById], references: [id])
+  contributors   User[]          @relation("DocumentContributors")
+}
+
+model SubtitleBlock {
+  id         String           @id @default(cuid())
+  documentId String
+  orderIndex Int
+  startTime  Float
+  endTime    Float
+  text       String
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  history    ChangeHistory[]
+  document   SubtitleDocument @relation(fields: [documentId], references: [id])
+}
+
+model ChangeHistory {
+  id           String        @id @default(cuid())
+  blockId      String
+  modifiedById String
+  oldText      String
+  newText      String
+  oldStartTime Float
+  newStartTime Float
+  oldEndTime   Float
+  newEndTime   Float
+  timestamp    DateTime      @default(now())
+  block        SubtitleBlock @relation(fields: [blockId], references: [id])
+  modifiedBy   User          @relation(fields: [modifiedById], references: [id])
+}
+
+enum Gender {
+  male
+  female
+}
