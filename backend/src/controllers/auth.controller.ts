@@ -73,17 +73,18 @@ export const signIn = async (
   }
 };
 
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
     sendResponse(res, HTTP_STATUS.OK, {
       message: AUTH_MESSAGES.LOGOUT_SUCCESS,
     });
   } catch (error: any) {
-    console.error("Error in logout controller:", error.message);
-    sendResponse(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, {
-      error: COMMON_MESSAGES.INTERNAL_SERVER_ERROR,
-    });
+    next(error);
   }
 };
 
