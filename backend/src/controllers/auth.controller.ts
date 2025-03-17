@@ -3,22 +3,25 @@ import bcryptjs from "bcryptjs";
 import prisma from "../db/prisma.js";
 import generateToken from "../utils/generateToken.js";
 
-export const signUp = async (req: Request, res: Response): Promise<any> => {
+export const signUp = async (req: Request, res: Response): Promise<void> => {
   try {
     const { fullName, username, password, confirmPassword, gender } = req.body;
 
     if (!fullName || !username || !password || !confirmPassword || !gender) {
-      return res.status(400).json({ error: "Please fill in all fields" });
+      res.status(400).json({ error: "Please fill in all fields" });
+      return;
     }
 
     if (password !== confirmPassword) {
-      return res.status(400).json({ error: "Passwords don't match" });
+      res.status(400).json({ error: "Passwords don't match" });
+      return;
     }
 
     const user = await prisma.user.findUnique({ where: { username } });
 
     if (user) {
-      return res.status(400).json({ error: "Username already exists" });
+      res.status(400).json({ error: "Username already exists" });
+      return;
     }
 
     const salt = await bcryptjs.genSalt(10);
@@ -40,11 +43,13 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
     });
 
     if (!newUser) {
-      return res.status(400).json({ error: "Invalid user data" });
+      res.status(400).json({ error: "Invalid user data" });
+      return;
     }
 
     generateToken(newUser.id, res);
-    return res.status(201).json({
+
+    res.status(201).json({
       id: newUser.id,
       fullName: newUser.fullName,
       username: newUser.username,
@@ -52,23 +57,25 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
     });
   } catch (error: any) {
     console.error("Error in signUp controller", error.message);
-    return res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-export const signIn = async (req: Request, res: Response): Promise<any> => {
+export const signIn = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
     const user = await prisma.user.findUnique({ where: { username } });
 
     if (!user) {
-      return res.status(400).json({ error: "Invalid credentials" });
+      res.status(400).json({ error: "Invalid credentials" });
+      return;
     }
 
     const isPasswordCorrect = await bcryptjs.compare(password, user.password);
 
     if (!isPasswordCorrect) {
-      return res.status(400).json({ error: "Invalid credentials" });
+      res.status(400).json({ error: "Invalid credentials" });
+      return;
     }
 
     generateToken(user.id, res);
@@ -95,12 +102,16 @@ export const logout = async (req: Request, res: Response) => {
   }
 };
 
-export const getAuthenticatedUser = async (req: Request, res: Response): Promise<any> => {
+export const getAuthenticatedUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "User not found" });
+      return;
     }
 
     res.status(200).json({
