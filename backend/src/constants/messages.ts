@@ -13,4 +13,6 @@ export const AUTH_MESSAGES = {
   INVALID_CREDENTIALS: "Invalid credentials",
   USER_NOT_FOUND: "User not found",
   LOGOUT_SUCCESS: "Logged out successfully",
+  NO_TOKEN_PROVIDED: "No token provided",
+  INVALID_TOKEN: "Invalid Token",
 };
