@@ -1,5 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 import authRoutes from "./routes/auth.route.js";
 
@@ -14,6 +15,8 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log("Server is running on port " + PORT);

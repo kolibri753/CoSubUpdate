@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {
   createUser,
   getUserByUsername,
@@ -14,40 +14,50 @@ import {
 import { sendResponse } from "../helpers/sendResponse.helper.js";
 import generateToken from "../utils/generateToken.js";
 
-export const signUp = async (req: Request, res: Response): Promise<void> => {
+export const signUp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { username, password, confirmPassword } =
       req.body as UserSignUpRequestDto;
 
     if (password !== confirmPassword) {
-      sendResponse(res, HTTP_STATUS.BAD_REQUEST, { error: AUTH_MESSAGES.PASSWORD_MISMATCH });
-      return;
+      return sendResponse(res, HTTP_STATUS.BAD_REQUEST, {
+        error: AUTH_MESSAGES.PASSWORD_MISMATCH,
+      });
     }
 
     if (await getUserByUsername(username)) {
-      sendResponse(res, HTTP_STATUS.BAD_REQUEST, { error: AUTH_MESSAGES.USERNAME_TAKEN });
-      return;
+      return sendResponse(res, HTTP_STATUS.BAD_REQUEST, {
+        error: AUTH_MESSAGES.USERNAME_TAKEN,
+      });
     }
 
     const { confirmPassword: _, ...userData } = req.body;
     const newUser = await createUser(userData);
 
     generateToken(newUser.id, res);
-
     sendResponse(res, HTTP_STATUS.CREATED, newUser);
   } catch (error: any) {
-    console.error("Error in signUp controller:", error.message);
-    sendResponse(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, { error: COMMON_MESSAGES.INTERNAL_SERVER_ERROR });
+    next(error);
   }
 };
 
-export const signIn = async (req: Request, res: Response): Promise<void> => {
+export const signIn = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { username, password } = req.body as UserSignInRequestDto;
 
     const user = await getUserByUsername(username);
     if (!user || !(await validatePassword(password, user.password))) {
-      sendResponse(res, HTTP_STATUS.BAD_REQUEST, { error: AUTH_MESSAGES.INVALID_CREDENTIALS });
+      sendResponse(res, HTTP_STATUS.BAD_REQUEST, {
+        error: AUTH_MESSAGES.INVALID_CREDENTIALS,
+      });
       return;
     }
 
@@ -59,30 +69,36 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
       profilePic: user.profilePic,
     });
   } catch (error: any) {
-    console.error("Error in signIn controller:", error.message);
-    sendResponse(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, { error: COMMON_MESSAGES.INTERNAL_SERVER_ERROR });
+    next(error);
   }
 };
 
 export const logout = async (req: Request, res: Response) => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
-    sendResponse(res, HTTP_STATUS.OK, { message: AUTH_MESSAGES.LOGOUT_SUCCESS });
+    sendResponse(res, HTTP_STATUS.OK, {
+      message: AUTH_MESSAGES.LOGOUT_SUCCESS,
+    });
   } catch (error: any) {
     console.error("Error in logout controller:", error.message);
-    sendResponse(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, { error: COMMON_MESSAGES.INTERNAL_SERVER_ERROR });
+    sendResponse(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, {
+      error: COMMON_MESSAGES.INTERNAL_SERVER_ERROR,
+    });
   }
 };
 
 export const getAuthenticatedUser = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   try {
     const user = await getUserById(req.user.id);
 
     if (!user) {
-      sendResponse(res, HTTP_STATUS.NOT_FOUND, { error: AUTH_MESSAGES.USER_NOT_FOUND });
+      sendResponse(res, HTTP_STATUS.NOT_FOUND, {
+        error: AUTH_MESSAGES.USER_NOT_FOUND,
+      });
       return;
     }
 
@@ -93,7 +109,6 @@ export const getAuthenticatedUser = async (
       profilePic: user.profilePic,
     });
   } catch (error: any) {
-    console.error("Error in getAuthenticatedUser controller:", error.message);
-    sendResponse(res, HTTP_STATUS.INTERNAL_SERVER_ERROR, { error: COMMON_MESSAGES.INTERNAL_SERVER_ERROR });
+    next(error);
   }
 };
