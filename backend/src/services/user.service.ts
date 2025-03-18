@@ -1,17 +1,15 @@
 import { Gender } from "@prisma/client";
 import prisma from "../db/prisma.js";
 import bcryptjs from "bcryptjs";
-import {
-  UserSignUpRequestDto,
-  UserSignUpResponseDto,
-} from "../types/auth.js";
+import { SALT_ROUNDS } from "../config/authConfig.js";
+import { UserSignUpRequestDto, UserSignUpResponseDto } from "../types/auth.js";
 
 export const createUser = async (
   data: UserSignUpRequestDto
 ): Promise<UserSignUpResponseDto> => {
   const { fullName, username, password, gender } = data;
 
-  const salt = await bcryptjs.genSalt(10);
+  const salt = await bcryptjs.genSalt(SALT_ROUNDS);
   const hashedPassword = await bcryptjs.hash(password, salt);
 
   const newUser = await prisma.user.create({
