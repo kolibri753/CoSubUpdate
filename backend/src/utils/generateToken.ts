@@ -1,13 +1,18 @@
 import jwt from "jsonwebtoken";
 import { Response } from "express";
+import {
+  JWT_EXPIRATION,
+  COOKIE_MAX_AGE,
+  COOKIE_NAME,
+} from "../config/authConfig.js";
 
 const generateToken = (userId: string, res: Response) => {
   const token = jwt.sign({ userId }, process.env.JWT_SECRET!, {
-    expiresIn: "15d",
+    expiresIn: JWT_EXPIRATION,
   });
 
-  res.cookie("jwt", token, {
-    maxAge: 15 * 24 * 60 * 60 * 1000,
+  res.cookie(COOKIE_NAME, token, {
+    maxAge: COOKIE_MAX_AGE,
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV !== "development",
