@@ -51,7 +51,11 @@ const SignUpForm = () => {
         className="btn btn-primary w-full mt-2"
         disabled={loading}
       >
-        {loading ? "Loading..." : "Sign Up"}
+        {loading ? (
+          <span className="loading loading-dots loading-md"></span>
+        ) : (
+          "Sign Up"
+        )}
       </button>
     </form>
   );

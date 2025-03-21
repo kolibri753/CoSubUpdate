@@ -1,5 +1,5 @@
-export { useSignUp } from "./useSignUp.hook";
-export { useSignUpForm } from "./useSignUpForm.hook";
-export { useSignIn } from "./useSignIn.hook";
-export { useSignInForm } from "./useSignInForm.hook";
-export { useLogout } from "./useLogout.hook";
+export { useSignUp } from "./auth/useSignUp.hook";
+export { useSignUpForm } from "./auth/useSignUpForm.hook";
+export { useSignIn } from "./auth/useSignIn.hook";
+export { useSignInForm } from "./auth/useSignInForm.hook";
+export { useLogout } from "./auth/useLogout.hook";

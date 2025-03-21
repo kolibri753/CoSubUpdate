@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useSignUp } from "./hooks";
-import { validateSignUp } from "../utils/validation";
+import { useSignUp } from "../hooks";
+import { validateSignUp } from "../../utils/validation";
 
 export const useSignUpForm = () => {
   const [formData, setFormData] = useState({

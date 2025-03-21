@@ -1,20 +1,23 @@
 import { useState } from "react";
-import { useAuthContext } from "../context/AuthContext";
+import { useAuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
-type SignInInputs = {
+type SignUpInputs = {
+  fullName: string;
   username: string;
   password: string;
+  confirmPassword: string;
+  gender: string;
 };
 
-export const useSignIn = () => {
+export const useSignUp = () => {
   const [loading, setLoading] = useState(false);
   const { setAuthUser } = useAuthContext();
 
-  const signin = async (inputs: SignInInputs) => {
+  const signup = async (inputs: SignUpInputs) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/signin", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(inputs),
@@ -27,7 +30,7 @@ export const useSignIn = () => {
 
       const data = await res.json();
       setAuthUser(data);
-      toast.success("Signed in successfully!");
+      toast.success("Account created successfully!");
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -36,5 +39,5 @@ export const useSignIn = () => {
     }
   };
 
-  return { loading, signin };
+  return { loading, signup };
 };

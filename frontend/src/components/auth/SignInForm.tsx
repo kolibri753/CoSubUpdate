@@ -1,4 +1,4 @@
-import { useSignInForm } from "../../hooks/useSignInForm.hook";
+import { useSignInForm } from "../../hooks/hooks";
 import InputField from "../form/InputField";
 
 const SignInForm = () => {
@@ -26,7 +26,11 @@ const SignInForm = () => {
         className="btn btn-primary w-full mt-2"
         disabled={loading}
       >
-        {loading ? "Loading..." : "Sign In"}
+        {loading ? (
+          <span className="loading loading-dots loading-md"></span>
+        ) : (
+          "Sign In"
+        )}
       </button>
     </form>
   );
