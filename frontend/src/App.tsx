@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import { useThemeStore } from "./store/useThemeStore";
 import SignUp from "./pages/SignUp";
+import SignIn from "./pages/SignIn";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -16,7 +17,7 @@ function App() {
       <Routes>
         {/* <Route path="/" element={<Home />}></Route> */}
         <Route path="/signUp" element={<SignUp />}></Route>
-        {/* <Route path="/signIn" element={<SignIn />}></Route> */}
+        <Route path="/signIn" element={<SignIn />}></Route>
       </Routes>
       <Toaster />
     </div>
