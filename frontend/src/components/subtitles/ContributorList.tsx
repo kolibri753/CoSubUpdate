@@ -3,13 +3,13 @@ import { UserIcon } from "lucide-react";
 const ContributorList = ({ contributors }: { contributors: string[] }) => (
   <div className="flex flex-wrap justify-center gap-1">
     {contributors.length > 0 ? (
-      contributors.map((user, index) => (
+      contributors.map((username, index) => (
         <span
           key={index}
           className="badge badge-outline text-xs flex items-center gap-1"
         >
           <UserIcon className="size-3" />
-          {user}
+          {username}
         </span>
       ))
     ) : (
