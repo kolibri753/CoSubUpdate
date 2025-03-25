@@ -42,7 +42,7 @@ model SubtitleBlock {
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
   history    ChangeHistory[]
-  document   SubtitleDocument @relation(fields: [documentId], references: [id])
+  document   SubtitleDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
 }
 
 model ChangeHistory {

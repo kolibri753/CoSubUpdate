@@ -16,3 +16,12 @@ export const AUTH_MESSAGES = {
   NO_TOKEN_PROVIDED: "No token provided",
   INVALID_TOKEN: "Invalid Token",
 };
+
+export const SUBTITLE_MESSAGES = {
+  NOT_FOUND: "Subtitle document not found.",
+  FORBIDDEN: "You do not have permission to modify this subtitle document.",
+  UPLOAD_REQUIRED: "An SRT file must be uploaded.",
+  CREATED: "Subtitle document created successfully.",
+  UPDATED: "Subtitle document updated successfully.",
+  DELETED: "Subtitle document deleted successfully.",
+};
