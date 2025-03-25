@@ -21,6 +21,7 @@ export const SUBTITLE_MESSAGES = {
   NOT_FOUND: "Subtitle document not found.",
   FORBIDDEN: "You do not have permission to modify this subtitle document.",
   UPLOAD_REQUIRED: "An SRT file must be uploaded.",
+  ALREADY_EXISTS: "A subtitle with this name already exists.",
   CREATED: "Subtitle document created successfully.",
   UPDATED: "Subtitle document updated successfully.",
   DELETED: "Subtitle document deleted successfully.",

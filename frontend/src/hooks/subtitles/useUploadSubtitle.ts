@@ -23,6 +23,11 @@ export const useUploadSubtitle = () => {
           credentials: "include",
         });
 
+        if (response.status === 409) {
+          toast.error("A subtitle with this name already exists.");
+          return;
+        }
+
         const result = await response.json();
         if (response.ok) {
           toast.success("Subtitle uploaded successfully!");
@@ -32,7 +37,9 @@ export const useUploadSubtitle = () => {
             name: result.subtitleDoc.name,
             createdBy: result.subtitleDoc.createdBy?.username || "Unknown",
             contributors:
-              result.subtitleDoc.contributors?.map((user: any) => user.username) || [],
+              result.subtitleDoc.contributors?.map(
+                (user: any) => user.username
+              ) || [],
           });
         } else {
           toast.error(result.error || "Failed to upload subtitle.");

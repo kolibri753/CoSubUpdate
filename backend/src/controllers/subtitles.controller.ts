@@ -34,12 +34,24 @@ export const createSubtitleDoc = async (
     }
 
     const createdById = req.user.id;
+    const fileName = req.file.originalname;
+
+    const existingDoc = await prisma.subtitleDocument.findFirst({
+      where: { name: fileName, createdById },
+    });
+
+    if (existingDoc) {
+      return sendResponse(res, HTTP_STATUS.CONFLICT, {
+        error: SUBTITLE_MESSAGES.ALREADY_EXISTS,
+      });
+    }
+
     const srtContent = req.file.buffer.toString("utf-8");
     const parsedSubtitles = parser.fromSrt(srtContent);
 
     const subtitleDoc = await prisma.subtitleDocument.create({
       data: {
-        name: req.file.originalname,
+        name: fileName,
         createdById,
         subtitleBlocks: {
           create: parsedSubtitles.map((sub, index) => ({
