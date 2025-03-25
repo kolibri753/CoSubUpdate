@@ -3,3 +3,7 @@
   themes: light, dark, pastel, retro, coffee, forest, cyberpunk, synthwave,
     luxury, autumn, valentine, aqua, business, night, dracula;
 }
+
+html {
+  scrollbar-gutter: stable;
+}

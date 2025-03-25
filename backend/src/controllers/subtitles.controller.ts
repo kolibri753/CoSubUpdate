@@ -74,6 +74,42 @@ export const createSubtitleDoc = async (
   }
 };
 
+export const deleteSubtitleDoc = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const existingDoc = await prisma.subtitleDocument.findUnique({
+      where: { id },
+      include: { subtitleBlocks: true },
+    });
+
+    if (!existingDoc) {
+      return sendResponse(res, HTTP_STATUS.NOT_FOUND, {
+        error: SUBTITLE_MESSAGES.NOT_FOUND,
+      });
+    }
+
+    if (existingDoc.createdById !== userId) {
+      return sendResponse(res, HTTP_STATUS.FORBIDDEN, {
+        error: "You are not authorized to delete this document.",
+      });
+    }
+
+    await prisma.subtitleDocument.delete({
+      where: { id },
+    });
+
+    sendResponse(res, HTTP_STATUS.OK, { message: SUBTITLE_MESSAGES.DELETED });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
 export const updateSubtitleBlock = async (
   req: Request,
   res: Response,
