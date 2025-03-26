@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "../db/prisma.js";
-import { sendResponse } from "../helpers/sendResponse.helper.js";
+import { sendResponse } from "../helpers/helpers.js";
 import { HTTP_STATUS, SUBTITLE_MESSAGES } from "../constants/constants.js";
 import SrtParser from "srt-parser-2";
 
@@ -62,7 +62,7 @@ export const createSubtitleDoc = async (
           })),
         },
       },
-      include: { subtitleBlocks: true },
+      include: { createdBy: true, subtitleBlocks: true },
     });
 
     sendResponse(res, HTTP_STATUS.CREATED, {
