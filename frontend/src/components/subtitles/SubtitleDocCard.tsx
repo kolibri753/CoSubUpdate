@@ -1,6 +1,7 @@
 import { useRef } from "react";
-import { Trash2 } from "lucide-react";
+import { SquarePen, Trash2 } from "lucide-react";
 import ContributorList from "./ContributorList";
+import AnimatedButton from "../common/ExpandableButton";
 import { useDeleteSubtitleDoc } from "../../hooks/hooks";
 
 interface SubtitleDocProps {
@@ -29,18 +30,30 @@ const SubtitleDocCard = ({
 
   return (
     <div className="bg-base-100 shadow-md rounded-lg w-full h-full p-4 flex flex-col justify-between">
-      <h3 className="text-sm font-semibold text-center">{name}</h3>
+      <h3
+        className="text-sm font-semibold text-center truncate max-w-full overflow-hidden whitespace-nowrap"
+        title={name}
+      >
+        {name}
+      </h3>
       <p className="text-xs text-gray-500 text-center">
         Created by {createdBy}
       </p>
       <ContributorList contributors={contributors} />
 
-      <button
-        className="btn btn-error btn-sm mt-4 flex items-center gap-2 self-center"
-        onClick={openModal}
-      >
-        <Trash2 size={20} /> Delete
-      </button>
+      <div className="flex justify-between gap-2">
+        <AnimatedButton
+          icon={<SquarePen size={20} />}
+          text="Update"
+          className="btn-accent"
+        />
+        <AnimatedButton
+          icon={<Trash2 size={20} />}
+          text="Delete"
+          className="btn-error"
+          onClick={openModal}
+        />
+      </div>
 
       <dialog ref={modalRef} className="modal">
         <div className="modal-box">
@@ -49,11 +62,11 @@ const SubtitleDocCard = ({
             Are you sure you want to delete this subtitle document?
           </p>
           <div className="modal-action">
-            <button onClick={handleDelete} className="btn btn-error">
-              Delete
-            </button>
             <button onClick={closeModal} className="btn">
               Cancel
+            </button>
+            <button onClick={handleDelete} className="btn btn-error">
+              Delete
             </button>
           </div>
         </div>
