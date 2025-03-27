@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { sendResponse } from "../helpers/helpers.js";
-import { HTTP_STATUS, SUBTITLE_MESSAGES } from "../constants/constants.js";
+import {
+  ACCESS_MESSAGES,
+  HTTP_STATUS,
+  SUBTITLE_MESSAGES,
+} from "../constants/constants.js";
 import * as Subtitles from "../services/subtitles.service.js";
 
 export const getAllSubtitleDocs = async (
@@ -25,7 +29,9 @@ export const addSubtitleViewer = async (
     const { userId } = req.body;
     const docId = req.params.id;
     await Subtitles.addViewer(docId, req.user.id, userId);
-    sendResponse(res, HTTP_STATUS.OK, { message: "User added as a viewer." });
+    sendResponse(res, HTTP_STATUS.OK, {
+      message: ACCESS_MESSAGES.ADDED_AS_VIEWER,
+    });
   } catch (error) {
     next(error);
   }
@@ -40,7 +46,9 @@ export const addSubtitleEditor = async (
     const { userId } = req.body;
     const docId = req.params.id;
     await Subtitles.addEditor(docId, req.user.id, userId);
-    sendResponse(res, HTTP_STATUS.OK, { message: "User added as an editor." });
+    sendResponse(res, HTTP_STATUS.OK, {
+      message: ACCESS_MESSAGES.ADDED_AS_EDITOR,
+    });
   } catch (error) {
     next(error);
   }

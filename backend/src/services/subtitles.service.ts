@@ -1,6 +1,10 @@
 import prisma from "../db/prisma.js";
 import SrtParser from "srt-parser-2";
-import { SUBTITLE_MESSAGES } from "../constants/constants.js";
+import {
+  ACCESS_MESSAGES,
+  AccessType,
+  SUBTITLE_MESSAGES,
+} from "../constants/constants.js";
 
 const parser = new SrtParser();
 
@@ -11,7 +15,7 @@ export const getDocs = async (userId: string) => {
         { createdById: userId },
         {
           SubtitleAccess: {
-            some: { userId, accessType: { in: ["VIEW", "EDIT"] } },
+            some: { userId, accessType: { in: [AccessType.VIEW, AccessType.EDIT] } },
           },
         },
       ],
@@ -36,20 +40,20 @@ export const addViewer = async (
     include: { SubtitleAccess: true },
   });
 
-  if (!doc) throw new Error("Document not found.");
+  if (!doc) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
   if (doc.createdById !== ownerId)
-    throw new Error("Only the owner can share this document.");
+    throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
 
   const existingAccess = doc.SubtitleAccess.find(
     (access) => access.userId === viewerId
   );
-  if (existingAccess) throw new Error("User already has access.");
+  if (existingAccess) throw new Error(ACCESS_MESSAGES.ALREADY_HAS_ACCESS);
 
   await prisma.subtitleAccess.create({
     data: {
       userId: viewerId,
       documentId: docId,
-      accessType: "VIEW",
+      accessType: AccessType.VIEW,
     },
   });
 };
@@ -64,29 +68,28 @@ export const addEditor = async (
     include: { SubtitleAccess: true },
   });
 
-  if (!doc) throw new Error("Document not found.");
+  if (!doc) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
   if (doc.createdById !== ownerId)
-    throw new Error("Only the owner can share this document.");
+    throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
 
   const existingAccess = doc.SubtitleAccess.find(
     (access) => access.userId === editorId
   );
 
   if (existingAccess) {
-    if (existingAccess.accessType === "EDIT")
-      throw new Error("User is already an editor.");
+    if (existingAccess.accessType === AccessType.EDIT)
+      throw new Error(ACCESS_MESSAGES.ALREADY_EDITOR);
 
-    // Upgrade viewer to editor
     await prisma.subtitleAccess.update({
       where: { id: existingAccess.id },
-      data: { accessType: "EDIT" },
+      data: { accessType: AccessType.EDIT },
     });
   } else {
     await prisma.subtitleAccess.create({
       data: {
         userId: editorId,
         documentId: docId,
-        accessType: "EDIT",
+        accessType: AccessType.EDIT,
       },
     });
   }
@@ -127,7 +130,7 @@ export const deleteDoc = async (docId: string, userId: string) => {
 
   if (!doc) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
   if (doc.createdById !== userId)
-    throw new Error("You are not authorized to delete this document.");
+    throw new Error(SUBTITLE_MESSAGES.FORBIDDEN);
 
   await prisma.subtitleDocument.delete({ where: { id: docId } });
 };

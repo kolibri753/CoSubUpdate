@@ -8,10 +8,9 @@ import {
 import { UserSignUpRequestDto, UserSignInRequestDto } from "../types/auth.js";
 import {
   AUTH_MESSAGES,
-  COMMON_MESSAGES,
   HTTP_STATUS,
 } from "../constants/constants.js";
-import { sendResponse } from "../helpers/sendResponse.helper.js";
+import { sendResponse } from "../helpers/helpers.js";
 import generateToken from "../utils/generateToken.js";
 
 export const signUp = async (

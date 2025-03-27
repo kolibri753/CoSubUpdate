@@ -1,8 +1,8 @@
-import { Gender } from "@prisma/client";
 import prisma from "../db/prisma.js";
 import bcryptjs from "bcryptjs";
 import { SALT_ROUNDS } from "../config/authConfig.js";
 import { UserSignUpRequestDto, UserSignUpResponseDto } from "../types/auth.js";
+import { Gender } from "../constants/constants.js";
 
 export const createUser = async (
   data: UserSignUpRequestDto
@@ -46,7 +46,7 @@ export const validatePassword = async (
 };
 
 export const getProfilePic = (username: string, gender: Gender) => {
-  return gender === "male"
+  return gender === Gender.male
     ? `https://avatar.iran.liara.run/public/boy?username=${username}`
     : `https://avatar.iran.liara.run/public/girl?username=${username}`;
 };

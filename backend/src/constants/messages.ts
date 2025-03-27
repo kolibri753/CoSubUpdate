@@ -19,10 +19,19 @@ export const AUTH_MESSAGES = {
 
 export const SUBTITLE_MESSAGES = {
   NOT_FOUND: "Subtitle document not found.",
-  FORBIDDEN: "You do not have permission to modify this subtitle document.",
+  FORBIDDEN: "You do not have permission to modify or delete this subtitle document.",
   UPLOAD_REQUIRED: "An SRT file must be uploaded.",
   ALREADY_EXISTS: "A subtitle with this name already exists.",
   CREATED: "Subtitle document created successfully.",
   UPDATED: "Subtitle document updated successfully.",
   DELETED: "Subtitle document deleted successfully.",
+};
+
+export const ACCESS_MESSAGES = {
+  NO_PERMISSION: "Only the document owner can manage access.",
+  ALREADY_HAS_ACCESS: "User already has access.",
+  ADDED_AS_VIEWER: "User added as a viewer.",
+  ADDED_AS_EDITOR: "User added as an editor.",
+  ALREADY_EDITOR: "User is already an editor.",
+  UPGRADED_TO_EDITOR: "User upgraded from viewer to editor.",
 };
