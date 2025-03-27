@@ -4,10 +4,92 @@ import { SUBTITLE_MESSAGES } from "../constants/constants.js";
 
 const parser = new SrtParser();
 
-export const getAllDocs = async () => {
+export const getDocs = async (userId: string) => {
   return prisma.subtitleDocument.findMany({
-    include: { contributors: true, createdBy: true, subtitleBlocks: true },
+    where: {
+      OR: [
+        { createdById: userId },
+        {
+          SubtitleAccess: {
+            some: { userId, accessType: { in: ["VIEW", "EDIT"] } },
+          },
+        },
+      ],
+    },
+    include: {
+      createdBy: true,
+      subtitleBlocks: true,
+      SubtitleAccess: {
+        include: { user: true },
+      },
+    },
   });
+};
+
+export const addViewer = async (
+  docId: string,
+  ownerId: string,
+  viewerId: string
+) => {
+  const doc = await prisma.subtitleDocument.findUnique({
+    where: { id: docId },
+    include: { SubtitleAccess: true },
+  });
+
+  if (!doc) throw new Error("Document not found.");
+  if (doc.createdById !== ownerId)
+    throw new Error("Only the owner can share this document.");
+
+  const existingAccess = doc.SubtitleAccess.find(
+    (access) => access.userId === viewerId
+  );
+  if (existingAccess) throw new Error("User already has access.");
+
+  await prisma.subtitleAccess.create({
+    data: {
+      userId: viewerId,
+      documentId: docId,
+      accessType: "VIEW",
+    },
+  });
+};
+
+export const addEditor = async (
+  docId: string,
+  ownerId: string,
+  editorId: string
+) => {
+  const doc = await prisma.subtitleDocument.findUnique({
+    where: { id: docId },
+    include: { SubtitleAccess: true },
+  });
+
+  if (!doc) throw new Error("Document not found.");
+  if (doc.createdById !== ownerId)
+    throw new Error("Only the owner can share this document.");
+
+  const existingAccess = doc.SubtitleAccess.find(
+    (access) => access.userId === editorId
+  );
+
+  if (existingAccess) {
+    if (existingAccess.accessType === "EDIT")
+      throw new Error("User is already an editor.");
+
+    // Upgrade viewer to editor
+    await prisma.subtitleAccess.update({
+      where: { id: existingAccess.id },
+      data: { accessType: "EDIT" },
+    });
+  } else {
+    await prisma.subtitleAccess.create({
+      data: {
+        userId: editorId,
+        documentId: docId,
+        accessType: "EDIT",
+      },
+    });
+  }
 };
 
 export const createDoc = async (file: Express.Multer.File, userId: string) => {

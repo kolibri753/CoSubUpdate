@@ -9,9 +9,39 @@ export const getAllSubtitleDocs = async (
   next: NextFunction
 ) => {
   try {
-    const subtitles = await Subtitles.getAllDocs();
+    const subtitles = await Subtitles.getDocs(req.user.id);
     sendResponse(res, HTTP_STATUS.OK, subtitles);
   } catch (error: any) {
+    next(error);
+  }
+};
+
+export const addSubtitleViewer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId } = req.body;
+    const docId = req.params.id;
+    await Subtitles.addViewer(docId, req.user.id, userId);
+    sendResponse(res, HTTP_STATUS.OK, { message: "User added as a viewer." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addSubtitleEditor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId } = req.body;
+    const docId = req.params.id;
+    await Subtitles.addEditor(docId, req.user.id, userId);
+    sendResponse(res, HTTP_STATUS.OK, { message: "User added as an editor." });
+  } catch (error) {
     next(error);
   }
 };
