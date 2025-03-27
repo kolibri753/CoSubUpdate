@@ -1,8 +1,10 @@
 import { useRef } from "react";
-import { SquarePen, Trash2 } from "lucide-react";
+import { SquarePen, Trash2, Share2 } from "lucide-react";
 import ContributorList from "./ContributorList";
 import AnimatedButton from "../common/ExpandableButton";
-import { useDeleteSubtitleDoc } from "../../hooks/hooks";
+import ConfirmationModal from "../common/ConfirmationModal";
+import { useDeleteSubtitleDoc } from "../../hooks/subtitles/useDeleteSubtitleDoc";
+import ShareModal from "../common/ShareModal";
 
 interface SubtitleDocProps {
   id: string;
@@ -18,24 +20,41 @@ const SubtitleDocCard = ({
   contributors,
 }: SubtitleDocProps) => {
   const { deleteSubtitleDoc } = useDeleteSubtitleDoc();
-  const modalRef = useRef<HTMLDialogElement>(null);
+  const deleteModalRef = useRef<HTMLDialogElement>(null);
+  const shareModalRef = useRef<HTMLDialogElement>(null);
 
-  const openModal = () => modalRef.current?.showModal();
-  const closeModal = () => modalRef.current?.close();
+  const openDeleteModal = () => deleteModalRef.current?.showModal();
+  const closeDeleteModal = () => deleteModalRef.current?.close();
+
+  const openShareModal = () => shareModalRef.current?.showModal();
+  const closeShareModal = () => shareModalRef.current?.close();
 
   const handleDelete = async () => {
-    await deleteSubtitleDoc(id);
-    closeModal();
+    try {
+      await deleteSubtitleDoc(id);
+      closeDeleteModal();
+    } catch (error) {
+      console.error("Failed to delete subtitle document:", error);
+    }
   };
 
   return (
-    <div className="bg-base-100 shadow-md rounded-lg w-full h-full p-4 flex flex-col justify-between">
-      <h3
-        className="text-sm font-semibold text-center truncate max-w-full overflow-hidden whitespace-nowrap"
-        title={name}
-      >
-        {name}
-      </h3>
+    <div className="relative bg-base-100 shadow-md rounded-lg w-full h-full p-4 flex flex-col justify-between">
+      <div className="flex items-center justify-between gap-0.5">
+        <h3
+          className="text-sm font-semibold truncate max-w-full overflow-hidden whitespace-nowrap"
+          title={name}
+        >
+          {name}
+        </h3>
+        <button
+          onClick={openShareModal}
+          className="transition-colors text-gray-500 hover:text-primary cursor-pointer"
+        >
+          <Share2 size={20} />
+        </button>
+      </div>
+
       <p className="text-xs text-gray-500 text-center">
         Created by {createdBy}
       </p>
@@ -51,26 +70,16 @@ const SubtitleDocCard = ({
           icon={<Trash2 size={20} />}
           text="Delete"
           className="btn-error"
-          onClick={openModal}
+          onClick={openDeleteModal}
         />
       </div>
 
-      <dialog ref={modalRef} className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">Confirm Deletion</h3>
-          <p className="py-4">
-            Are you sure you want to delete this subtitle document?
-          </p>
-          <div className="modal-action">
-            <button onClick={closeModal} className="btn">
-              Cancel
-            </button>
-            <button onClick={handleDelete} className="btn btn-error">
-              Delete
-            </button>
-          </div>
-        </div>
-      </dialog>
+      <ConfirmationModal
+        ref={deleteModalRef}
+        onConfirm={handleDelete}
+        onCancel={closeDeleteModal}
+      />
+      <ShareModal ref={shareModalRef} docId={id} onClose={closeShareModal} />
     </div>
   );
 };

@@ -50,3 +50,9 @@ export const getProfilePic = (username: string, gender: Gender) => {
     ? `https://avatar.iran.liara.run/public/boy?username=${username}`
     : `https://avatar.iran.liara.run/public/girl?username=${username}`;
 };
+
+export const getUsers = async () => {
+  return prisma.user.findMany({
+    select: { id: true, fullName: true, username: true, profilePic: true },
+  });
+};
