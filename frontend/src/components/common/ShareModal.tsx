@@ -1,16 +1,17 @@
 import { forwardRef, useState } from "react";
+import { User } from "../../store/useUserStore";
 import { useShareSubtitleDoc } from "../../hooks/hooks";
-import { useGetUsers } from "../../hooks/hooks";
 
 interface ShareModalProps {
   docId: string;
   onClose: () => void;
+  users: User[];
+  usersLoading: boolean;
 }
 
 const ShareModal = forwardRef<HTMLDialogElement, ShareModalProps>(
-  ({ docId, onClose }, ref) => {
+  ({ docId, onClose, users, usersLoading }, ref) => {
     const { shareSubtitleDoc } = useShareSubtitleDoc();
-    const { users, loading } = useGetUsers();
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
     const [accessType, setAccessType] = useState<"view" | "edit">("view");
 
@@ -26,7 +27,7 @@ const ShareModal = forwardRef<HTMLDialogElement, ShareModalProps>(
           <h3 className="font-bold text-lg">Share Document</h3>
 
           <label className="block mt-4 text-sm">Select User:</label>
-          {loading ? (
+          {usersLoading ? (
             <p>Loading users...</p>
           ) : (
             <select

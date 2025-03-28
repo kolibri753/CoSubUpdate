@@ -3,14 +3,17 @@ import { SquarePen, Trash2, Share2 } from "lucide-react";
 import ContributorList from "./ContributorList";
 import AnimatedButton from "../common/ExpandableButton";
 import ConfirmationModal from "../common/ConfirmationModal";
-import { useDeleteSubtitleDoc } from "../../hooks/subtitles/useDeleteSubtitleDoc";
 import ShareModal from "../common/ShareModal";
+import { useDeleteSubtitleDoc } from "../../hooks/subtitles/useDeleteSubtitleDoc";
+import { User } from "../../store/useUserStore";
 
 interface SubtitleDocProps {
   id: string;
   name: string;
   createdBy: string;
   contributors: string[];
+  users: User[];
+  usersLoading: boolean;
 }
 
 const SubtitleDocCard = ({
@@ -18,6 +21,8 @@ const SubtitleDocCard = ({
   name,
   createdBy,
   contributors,
+  users,
+  usersLoading,
 }: SubtitleDocProps) => {
   const { deleteSubtitleDoc } = useDeleteSubtitleDoc();
   const deleteModalRef = useRef<HTMLDialogElement>(null);
@@ -79,7 +84,13 @@ const SubtitleDocCard = ({
         onConfirm={handleDelete}
         onCancel={closeDeleteModal}
       />
-      <ShareModal ref={shareModalRef} docId={id} onClose={closeShareModal} />
+      <ShareModal
+        ref={shareModalRef}
+        docId={id}
+        onClose={closeShareModal}
+        users={users}
+        usersLoading={usersLoading}
+      />
     </div>
   );
 };
