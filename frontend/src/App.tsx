@@ -5,6 +5,7 @@ import { useAuthContext } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
+import Home from "./pages/Home";
 
 function App() {
   const { theme } = useThemeStore();
@@ -19,10 +20,10 @@ function App() {
     >
       <Navbar />
       <Routes>
-        {/* <Route
+        <Route
           path="/"
           element={authUser ? <Home /> : <Navigate to={"/signin"} />}
-        /> */}
+        />
         <Route
           path="/signup"
           element={!authUser ? <SignUp /> : <Navigate to={"/"} />}

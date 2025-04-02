@@ -8,28 +8,45 @@ datasource db {
 }
 
 model User {
-  id                String             @id @default(cuid())
-  username          String             @unique
-  fullName          String
-  password          String
-  gender            Gender
-  profilePic        String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  changes           ChangeHistory[]
-  SubtitleDocument  SubtitleDocument[]
-  subtitleDocuments SubtitleDocument[] @relation("DocumentContributors")
+  id               String             @id @default(cuid())
+  username         String             @unique
+  fullName         String
+  password         String
+  gender           Gender
+  profilePic       String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  changes          ChangeHistory[]
+  SubtitleDocument SubtitleDocument[]
+  accesses         SubtitleAccess[]
 }
 
 model SubtitleDocument {
-  id             String          @id @default(cuid())
+  id             String           @id @default(cuid())
   name           String
   createdById    String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   subtitleBlocks SubtitleBlock[]
-  createdBy      User            @relation(fields: [createdById], references: [id])
-  contributors   User[]          @relation("DocumentContributors")
+  createdBy      User             @relation(fields: [createdById], references: [id])
+  SubtitleAccess SubtitleAccess[]
+}
+
+model SubtitleAccess {
+  id         String     @id @default(cuid())
+  userId     String
+  documentId String
+  accessType AccessType
+
+  user     User             @relation(fields: [userId], references: [id])
+  document SubtitleDocument @relation(fields: [documentId], references: [id])
+
+  @@unique([userId, documentId])
+}
+
+enum AccessType {
+  VIEW
+  EDIT
 }
 
 model SubtitleBlock {
@@ -42,7 +59,7 @@ model SubtitleBlock {
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
   history    ChangeHistory[]
-  document   SubtitleDocument @relation(fields: [documentId], references: [id])
+  document   SubtitleDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
 }
 
 model ChangeHistory {

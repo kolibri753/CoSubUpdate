@@ -4,14 +4,11 @@ import {
   getUserByUsername,
   validatePassword,
   getUserById,
+  getUsers,
 } from "../services/user.service.js";
 import { UserSignUpRequestDto, UserSignInRequestDto } from "../types/auth.js";
-import {
-  AUTH_MESSAGES,
-  COMMON_MESSAGES,
-  HTTP_STATUS,
-} from "../constants/constants.js";
-import { sendResponse } from "../helpers/sendResponse.helper.js";
+import { AUTH_MESSAGES, HTTP_STATUS } from "../constants/constants.js";
+import { sendResponse } from "../helpers/helpers.js";
 import generateToken from "../utils/generateToken.js";
 
 export const signUp = async (
@@ -109,6 +106,19 @@ export const getAuthenticatedUser = async (
       username: user.username,
       profilePic: user.profilePic,
     });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getAllUsers = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const users = await getUsers();
+    sendResponse(res, HTTP_STATUS.OK, users);
   } catch (error: any) {
     next(error);
   }
