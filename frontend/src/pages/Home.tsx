@@ -5,7 +5,9 @@ import { useGetUsers } from "../hooks/hooks";
 
 const Home = () => {
   const { docs, loading: docsLoading } = useGetSubtitleDocs();
-  const { users, loading: usersLoading } = useGetUsers(); // Fetch users only once
+  const { users, loading: usersLoading } = useGetUsers();
+
+  console.log(docs)
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8">
@@ -20,7 +22,7 @@ const Home = () => {
               id={doc.id}
               name={doc.name}
               createdBy={doc.createdBy}
-              contributors={doc.contributors}
+              access={doc.access}
               users={users}
               usersLoading={usersLoading}
             />

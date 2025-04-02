@@ -15,7 +15,10 @@ export const getDocs = async (userId: string) => {
         { createdById: userId },
         {
           SubtitleAccess: {
-            some: { userId, accessType: { in: [AccessType.VIEW, AccessType.EDIT] } },
+            some: {
+              userId,
+              accessType: { in: [AccessType.VIEW, AccessType.EDIT] },
+            },
           },
         },
       ],
@@ -95,6 +98,42 @@ export const addEditor = async (
   }
 };
 
+export const removeAccess = async (
+  docId: string,
+  ownerId: string,
+  targetUserId: string
+) => {
+  const doc = await prisma.subtitleDocument.findUnique({
+    where: { id: docId },
+    include: { SubtitleAccess: true },
+  });
+
+  if (!doc) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
+  if (doc.createdById !== ownerId)
+    throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
+
+  const existingAccess = doc.SubtitleAccess.find(
+    (access) => access.userId === targetUserId
+  );
+
+  if (!existingAccess) throw new Error(ACCESS_MESSAGES.NO_ACCESS);
+
+  if (existingAccess.accessType === AccessType.EDIT) {
+    await prisma.subtitleAccess.update({
+      where: { id: existingAccess.id },
+      data: { accessType: AccessType.VIEW },
+    });
+
+    return ACCESS_MESSAGES.DOWNGRADED_TO_VIEWER;
+  } else {
+    await prisma.subtitleAccess.delete({
+      where: { id: existingAccess.id },
+    });
+
+    return ACCESS_MESSAGES.REMOVED_ACCESS;
+  }
+};
+
 export const createDoc = async (file: Express.Multer.File, userId: string) => {
   const fileName = file.originalname;
 
@@ -129,8 +168,7 @@ export const deleteDoc = async (docId: string, userId: string) => {
   });
 
   if (!doc) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
-  if (doc.createdById !== userId)
-    throw new Error(SUBTITLE_MESSAGES.FORBIDDEN);
+  if (doc.createdById !== userId) throw new Error(SUBTITLE_MESSAGES.FORBIDDEN);
 
   await prisma.subtitleDocument.delete({ where: { id: docId } });
 };

@@ -54,6 +54,21 @@ export const addSubtitleEditor = async (
   }
 };
 
+export const removeSubtitleAccess = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId } = req.body;
+    const docId = req.params.id;
+    const message = await Subtitles.removeAccess(docId, req.user.id, userId);
+    sendResponse(res, HTTP_STATUS.OK, { message });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createSubtitleDoc = async (
   req: Request & { file?: Express.Multer.File },
   res: Response,

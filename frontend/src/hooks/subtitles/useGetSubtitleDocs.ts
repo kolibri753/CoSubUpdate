@@ -14,10 +14,15 @@ export const useGetSubtitleDocs = () => {
         if (data.error) throw new Error(data.error);
 
         setDocs(
-          data.map(({ createdBy, contributors, ...doc }: any) => ({
+          data.map(({ createdBy, SubtitleAccess, ...doc }: any) => ({
             ...doc,
             createdBy: createdBy?.username || "Unknown",
-            contributors: contributors?.map((user: any) => user.username) || [],
+            access:
+              SubtitleAccess?.map(({ user, accessType }: any) => ({
+                userId: user.id,
+                username: user.username,
+                accessType,
+              })) || [],
           }))
         );
       } catch (error: any) {

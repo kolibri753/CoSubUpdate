@@ -8,3 +8,4 @@ export { useGetSubtitleDocs } from "./subtitles/useGetSubtitleDocs";
 export { useUploadSubtitle } from "./subtitles/useUploadSubtitle";
 export { useDeleteSubtitleDoc } from "./subtitles/useDeleteSubtitleDoc";
 export { useShareSubtitleDoc } from "./subtitles/useShareSubtitleDoc";
+export { useRemoveAccess } from "./subtitles/useRemoveAccess";

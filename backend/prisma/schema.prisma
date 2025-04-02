@@ -39,7 +39,7 @@ model SubtitleAccess {
   accessType AccessType
 
   user     User             @relation(fields: [userId], references: [id])
-  document SubtitleDocument @relation(fields: [documentId], references: [id])
+  document SubtitleDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, documentId])
 }

@@ -36,7 +36,7 @@ export const useUploadSubtitle = () => {
             id: result.subtitleDoc.id,
             name: result.subtitleDoc.name,
             createdBy: result.subtitleDoc.createdBy?.username || "Unknown",
-            contributors:
+            access:
               result.subtitleDoc.contributors?.map(
                 (user: any) => user.username
               ) || [],

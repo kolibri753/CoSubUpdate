@@ -1,10 +1,18 @@
 import { create } from "zustand";
 
+export type AccessType = "EDIT" | "VIEW";
+
+export type SubtitleAccess = {
+  userId: string;
+  username: string;
+  accessType: AccessType;
+};
+
 export type SubtitleDoc = {
   id: string;
   name: string;
   createdBy: string;
-  contributors: string[];
+  access: SubtitleAccess[];
 };
 
 interface SubtitleDocState {
@@ -16,6 +24,7 @@ interface SubtitleDocState {
   setDocs: (docs: SubtitleDoc[]) => void;
   setSelectedDoc: (doc: SubtitleDoc | null) => void;
   setLoading: (loading: boolean) => void;
+  updateAccess: (docId: string, access: SubtitleAccess[]) => void;
 }
 
 const useSubtitleDocStore = create<SubtitleDocState>((set) => ({
@@ -28,6 +37,12 @@ const useSubtitleDocStore = create<SubtitleDocState>((set) => ({
   setDocs: (docs) => set({ docs }),
   setSelectedDoc: (doc) => set({ selectedDoc: doc }),
   setLoading: (loading) => set({ loading }),
+  updateAccess: (docId, access) =>
+    set((state) => ({
+      docs: state.docs.map((doc) =>
+        doc.id === docId ? { ...doc, access } : doc
+      ),
+    })),
 }));
 
 export default useSubtitleDocStore;
