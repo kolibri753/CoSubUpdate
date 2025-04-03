@@ -2,6 +2,7 @@ import { forwardRef, useState } from "react";
 import { User } from "../../store/useUserStore";
 import { useShareSubtitleDoc } from "../../hooks/hooks";
 import { useAuthContext } from "../../context/AuthContext";
+import { AccessType } from "../../store/useSubtitleDocStore";
 
 interface ShareModalProps {
   docId: string;
@@ -14,7 +15,7 @@ const ShareModal = forwardRef<HTMLDialogElement, ShareModalProps>(
   ({ docId, onClose, users, usersLoading }, ref) => {
     const { shareSubtitleDoc } = useShareSubtitleDoc();
     const [selectedUser, setSelectedUser] = useState<string | null>(null);
-    const [accessType, setAccessType] = useState<"view" | "edit">("view");
+    const [accessType, setAccessType] = useState<AccessType>("VIEW");
 
     const { authUser: currentUser } = useAuthContext();
 
@@ -54,11 +55,11 @@ const ShareModal = forwardRef<HTMLDialogElement, ShareModalProps>(
           <label className="block mt-4 text-sm">Access Type:</label>
           <select
             value={accessType}
-            onChange={(e) => setAccessType(e.target.value as "view" | "edit")}
+            onChange={(e) => setAccessType(e.target.value as AccessType)}
             className="select select-bordered w-full mt-1"
           >
-            <option value="view">Viewer</option>
-            <option value="edit">Editor</option>
+            <option value="VIEW">Viewer</option>
+            <option value="EDIT">Editor</option>
           </select>
 
           <div className="modal-action">

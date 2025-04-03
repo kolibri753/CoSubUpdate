@@ -33,11 +33,12 @@ export const getDocs = async (userId: string) => {
   });
 };
 
-export const addViewer = async (
+export const updateSubtitleAccess = async (
   docId: string,
   ownerId: string,
-  viewerId: string
-) => {
+  userId: string,
+  accessType: AccessType
+): Promise<string> => {
   const doc = await prisma.subtitleDocument.findUnique({
     where: { id: docId },
     include: { SubtitleAccess: true },
@@ -48,35 +49,7 @@ export const addViewer = async (
     throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
 
   const existingAccess = doc.SubtitleAccess.find(
-    (access) => access.userId === viewerId
-  );
-  if (existingAccess) throw new Error(ACCESS_MESSAGES.ALREADY_HAS_ACCESS);
-
-  await prisma.subtitleAccess.create({
-    data: {
-      userId: viewerId,
-      documentId: docId,
-      accessType: AccessType.VIEW,
-    },
-  });
-};
-
-export const addEditor = async (
-  docId: string,
-  ownerId: string,
-  editorId: string
-) => {
-  const doc = await prisma.subtitleDocument.findUnique({
-    where: { id: docId },
-    include: { SubtitleAccess: true },
-  });
-
-  if (!doc) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
-  if (doc.createdById !== ownerId)
-    throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
-
-  const existingAccess = doc.SubtitleAccess.find(
-    (access) => access.userId === editorId
+    (access) => access.userId === userId
   );
 
   if (existingAccess) {
@@ -87,15 +60,15 @@ export const addEditor = async (
       where: { id: existingAccess.id },
       data: { accessType: AccessType.EDIT },
     });
-  } else {
-    await prisma.subtitleAccess.create({
-      data: {
-        userId: editorId,
-        documentId: docId,
-        accessType: AccessType.EDIT,
-      },
-    });
+    return ACCESS_MESSAGES.UPGRADED_TO_EDITOR;
   }
+
+  await prisma.subtitleAccess.create({
+    data: { userId, documentId: docId, accessType },
+  });
+  return accessType === AccessType.EDIT
+    ? ACCESS_MESSAGES.ADDED_AS_EDITOR
+    : ACCESS_MESSAGES.ADDED_AS_VIEWER;
 };
 
 export const removeAccess = async (
