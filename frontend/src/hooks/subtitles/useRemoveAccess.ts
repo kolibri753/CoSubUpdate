@@ -15,10 +15,10 @@ export const useRemoveAccess = () => {
           body: JSON.stringify({ userId }),
         });
 
-        console.log("Removing access for:", { docId, userId });
+        const data = await response.json();
 
         if (!response.ok) {
-          throw new Error("Failed to remove access");
+          throw new Error(data.message || "Failed to remove access");
         }
 
         const updatedDoc = docs.find((doc) => doc.id === docId);
@@ -29,10 +29,9 @@ export const useRemoveAccess = () => {
         );
         updateAccess(docId, newAccessList);
 
-        toast.success("User removed successfully.");
-      } catch (error) {
-        console.error("Remove access error:", error);
-        toast.error("Failed to remove user access.");
+        toast.success(data.message);
+      } catch (error: any) {
+        toast.error(error.message || "Failed to remove user access.");
       }
     },
     [updateAccess, docs]

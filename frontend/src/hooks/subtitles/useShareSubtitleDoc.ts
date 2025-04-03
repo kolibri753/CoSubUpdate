@@ -17,17 +17,12 @@ export const useShareSubtitleDoc = () => {
 
         const result = await response.json();
         if (response.ok) {
-          toast.success(
-            accessType === "VIEW"
-              ? "Viewer added successfully!"
-              : "Editor added successfully!"
-          );
+          toast.success(result.message);
         } else {
           toast.error(result.error || "Failed to share document.");
         }
-      } catch (error) {
-        console.error("Sharing error:", error);
-        toast.error("Failed to update access. Try again.");
+      } catch (error: any) {
+        toast.error(error.message);
       }
     },
     []
