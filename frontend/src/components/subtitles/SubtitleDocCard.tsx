@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { SquarePen, Trash2, Users } from "lucide-react";
-import ContributorList from "./ContributorList";
+import ContributorList from "./contributors/ContributorList";
 import AnimatedButton from "../common/ExpandableButton";
 import ConfirmationModal from "../common/ConfirmationModal";
 import ShareModal from "../common/ShareModal";
