@@ -7,11 +7,11 @@ const Home = () => {
   const { docs, loading: docsLoading } = useGetSubtitleDocs();
   const { users, loading: usersLoading } = useGetUsers();
 
-  console.log(docs)
+  console.log(docs);
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 auto-rows-fr">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 auto-rows-[minmax(150px,_auto)]">
         <AddSubtitleButton />
         {docsLoading ? (
           <p>Loading...</p>

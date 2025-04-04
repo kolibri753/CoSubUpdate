@@ -48,7 +48,7 @@ const SubtitleDocCard = ({
     <div className="relative bg-base-100 shadow-md rounded-lg w-full h-full p-4 flex flex-col justify-between">
       <div className="flex items-center justify-between gap-0.5">
         <h3
-          className="text-sm font-semibold truncate max-w-full overflow-hidden whitespace-nowrap"
+          className="text-sm font-semibold truncate max-w-full overflow-hidden whitespace-nowrap mb-2"
           title={name}
         >
           {name}

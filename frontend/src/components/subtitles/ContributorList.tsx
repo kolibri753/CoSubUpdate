@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import clsx from "clsx";
 import { X, Loader2 } from "lucide-react";
 import { useRemoveAccess } from "../../hooks/hooks";
@@ -18,16 +18,19 @@ const ContributorList = ({ access, docId }: ContributorListProps) => {
   const { removeAccess } = useRemoveAccess();
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
 
-  const handleRemove = async (userId: string) => {
-    setLoadingUserId(userId);
-    try {
-      await removeAccess(docId, userId);
-    } catch (error) {
-      console.error("Failed to remove access:", error);
-    } finally {
-      setLoadingUserId(null);
-    }
-  };
+  const handleRemove = useCallback(
+    async (userId: string) => {
+      setLoadingUserId(userId);
+      try {
+        await removeAccess(docId, userId);
+      } catch (error) {
+        console.error("Failed to remove access:", error);
+      } finally {
+        setLoadingUserId(null);
+      }
+    },
+    [removeAccess, docId]
+  );
 
   const renderedContributors = useMemo(
     () =>
@@ -35,12 +38,17 @@ const ContributorList = ({ access, docId }: ContributorListProps) => {
         <div
           key={userId}
           className={clsx(
-            "flex items-center text-white px-3 py-1 rounded-md shadow-md",
-            accessColors[accessType] || "bg-gray-500"
+            "group flex items-center text-white px-2 py-0.5 rounded-md shadow-md text-[14px]",
+            accessColors[accessType] || "bg-gray-500",
+            loadingUserId === userId && "opacity-50"
           )}
         >
           {username}
-          <button onClick={() => handleRemove(userId)} className="ml-2">
+          <button
+            onClick={() => handleRemove(userId)}
+            className="ml-1"
+            disabled={loadingUserId === userId}
+          >
             {loadingUserId === userId ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
@@ -49,15 +57,15 @@ const ContributorList = ({ access, docId }: ContributorListProps) => {
           </button>
         </div>
       )),
-    [access, loadingUserId]
+    [access, loadingUserId, handleRemove]
   );
 
   return (
-    <div className="flex flex-wrap gap-2 mt-2">
+    <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
       {renderedContributors.length ? (
         renderedContributors
       ) : (
-        <p className="text-gray-500">No access granted</p>
+        <p className="text-gray-500 text-xs">No access granted</p>
       )}
     </div>
   );

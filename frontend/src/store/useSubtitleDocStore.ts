@@ -24,7 +24,12 @@ interface SubtitleDocState {
   setDocs: (docs: SubtitleDoc[]) => void;
   setSelectedDoc: (doc: SubtitleDoc | null) => void;
   setLoading: (loading: boolean) => void;
-  updateAccess: (docId: string, access: SubtitleAccess[]) => void;
+  updateAccess: (
+    docId: string,
+    access:
+      | SubtitleAccess[]
+      | ((prevAccess: SubtitleAccess[]) => SubtitleAccess[])
+  ) => void;
 }
 
 const useSubtitleDocStore = create<SubtitleDocState>((set) => ({
@@ -37,10 +42,18 @@ const useSubtitleDocStore = create<SubtitleDocState>((set) => ({
   setDocs: (docs) => set({ docs }),
   setSelectedDoc: (doc) => set({ selectedDoc: doc }),
   setLoading: (loading) => set({ loading }),
-  updateAccess: (docId, access) =>
+  updateAccess: (docId, newAccess) =>
     set((state) => ({
       docs: state.docs.map((doc) =>
-        doc.id === docId ? { ...doc, access } : doc
+        doc.id === docId
+          ? {
+              ...doc,
+              access:
+                newAccess instanceof Function
+                  ? newAccess(doc.access)
+                  : newAccess,
+            }
+          : doc
       ),
     })),
 }));

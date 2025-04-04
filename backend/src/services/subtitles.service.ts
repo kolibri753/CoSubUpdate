@@ -38,7 +38,7 @@ export const updateSubtitleAccess = async (
   ownerId: string,
   userId: string,
   accessType: AccessType
-): Promise<string> => {
+) => {
   const doc = await prisma.subtitleDocument.findUnique({
     where: { id: docId },
     include: { SubtitleAccess: true },
@@ -51,6 +51,10 @@ export const updateSubtitleAccess = async (
   const existingAccess = doc.SubtitleAccess.find(
     (access) => access.userId === userId
   );
+  let message =
+    accessType === AccessType.EDIT
+      ? ACCESS_MESSAGES.ADDED_AS_EDITOR
+      : ACCESS_MESSAGES.ADDED_AS_VIEWER;
 
   if (existingAccess) {
     if (existingAccess.accessType === AccessType.EDIT)
@@ -60,15 +64,20 @@ export const updateSubtitleAccess = async (
       where: { id: existingAccess.id },
       data: { accessType: AccessType.EDIT },
     });
-    return ACCESS_MESSAGES.UPGRADED_TO_EDITOR;
+
+    message = ACCESS_MESSAGES.UPGRADED_TO_EDITOR;
+  } else {
+    await prisma.subtitleAccess.create({
+      data: { userId, documentId: docId, accessType },
+    });
   }
 
-  await prisma.subtitleAccess.create({
-    data: { userId, documentId: docId, accessType },
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { username: true },
   });
-  return accessType === AccessType.EDIT
-    ? ACCESS_MESSAGES.ADDED_AS_EDITOR
-    : ACCESS_MESSAGES.ADDED_AS_VIEWER;
+
+  return { message, username: user?.username || "Unknown" };
 };
 
 export const removeAccess = async (

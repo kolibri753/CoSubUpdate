@@ -26,15 +26,16 @@ export const addSubtitleAccess = async (
   next: NextFunction
 ) => {
   try {
+    const { id: docId } = req.params;
     const { userId, accessType } = req.body;
-    const docId = req.params.id;
-    const message = await Subtitles.updateSubtitleAccess(
+    const ownerId = req.user.id;
+    const result = await Subtitles.updateSubtitleAccess(
       docId,
-      req.user.id,
+      ownerId,
       userId,
       accessType
     );
-    sendResponse(res, HTTP_STATUS.OK, { message });
+    sendResponse(res, HTTP_STATUS.OK, result);
   } catch (error) {
     next(error);
   }
