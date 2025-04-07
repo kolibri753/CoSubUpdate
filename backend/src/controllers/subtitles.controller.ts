@@ -20,6 +20,19 @@ export const getAllSubtitleDocs = async (
   }
 };
 
+export const getSubtitleDocById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const subtitleDoc = await Subtitles.getDocById(req.params.id, req.user.id);
+    sendResponse(res, HTTP_STATUS.OK, subtitleDoc);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
 export const addSubtitleAccess = async (
   req: Request,
   res: Response,

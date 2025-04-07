@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
 import Home from "./pages/Home";
+import SubtitleEditor from "./pages/SubtitleEditor";
 
 function App() {
   const { theme } = useThemeStore();
@@ -31,6 +32,10 @@ function App() {
         <Route
           path="/signin"
           element={!authUser ? <SignIn /> : <Navigate to={"/"} />}
+        />
+        <Route
+          path="/subtitles/:id"
+          element={authUser ? <SubtitleEditor /> : <Navigate to={"/signin"} />}
         />
       </Routes>
       <Toaster />

@@ -33,6 +33,34 @@ export const getDocs = async (userId: string) => {
   });
 };
 
+export const getDocById = async (docId: string, userId: string) => {
+  const doc = await prisma.subtitleDocument.findUnique({
+    where: { id: docId },
+    include: {
+      subtitleBlocks: true,
+      createdBy: true,
+      SubtitleAccess: true,
+    },
+  });
+
+  if (!doc) {
+    throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
+  }
+
+  const isOwner = doc.createdById === userId;
+  const hasAccess = doc.SubtitleAccess.some(
+    (a: { userId: string; accessType: AccessType }) =>
+      a.userId === userId &&
+      [AccessType.VIEW, AccessType.EDIT].includes(a.accessType)
+  );
+
+  if (!isOwner && !hasAccess) {
+    throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
+  }
+
+  return doc;
+};
+
 export const updateSubtitleAccess = async (
   docId: string,
   ownerId: string,
