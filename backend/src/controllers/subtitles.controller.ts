@@ -20,24 +20,28 @@ export const getAllSubtitleDocs = async (
   }
 };
 
-export const addSubtitleViewer = async (
+export const addSubtitleAccess = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { userId } = req.body;
-    const docId = req.params.id;
-    await Subtitles.addViewer(docId, req.user.id, userId);
-    sendResponse(res, HTTP_STATUS.OK, {
-      message: ACCESS_MESSAGES.ADDED_AS_VIEWER,
-    });
+    const { id: docId } = req.params;
+    const { userId, accessType } = req.body;
+    const ownerId = req.user.id;
+    const result = await Subtitles.updateSubtitleAccess(
+      docId,
+      ownerId,
+      userId,
+      accessType
+    );
+    sendResponse(res, HTTP_STATUS.OK, result);
   } catch (error) {
     next(error);
   }
 };
 
-export const addSubtitleEditor = async (
+export const removeSubtitleAccess = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -45,10 +49,8 @@ export const addSubtitleEditor = async (
   try {
     const { userId } = req.body;
     const docId = req.params.id;
-    await Subtitles.addEditor(docId, req.user.id, userId);
-    sendResponse(res, HTTP_STATUS.OK, {
-      message: ACCESS_MESSAGES.ADDED_AS_EDITOR,
-    });
+    const message = await Subtitles.removeAccess(docId, req.user.id, userId);
+    sendResponse(res, HTTP_STATUS.OK, { message });
   } catch (error) {
     next(error);
   }

@@ -15,7 +15,10 @@ export const getDocs = async (userId: string) => {
         { createdById: userId },
         {
           SubtitleAccess: {
-            some: { userId, accessType: { in: [AccessType.VIEW, AccessType.EDIT] } },
+            some: {
+              userId,
+              accessType: { in: [AccessType.VIEW, AccessType.EDIT] },
+            },
           },
         },
       ],
@@ -30,10 +33,11 @@ export const getDocs = async (userId: string) => {
   });
 };
 
-export const addViewer = async (
+export const updateSubtitleAccess = async (
   docId: string,
   ownerId: string,
-  viewerId: string
+  userId: string,
+  accessType: AccessType
 ) => {
   const doc = await prisma.subtitleDocument.findUnique({
     where: { id: docId },
@@ -45,36 +49,12 @@ export const addViewer = async (
     throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
 
   const existingAccess = doc.SubtitleAccess.find(
-    (access) => access.userId === viewerId
+    (access) => access.userId === userId
   );
-  if (existingAccess) throw new Error(ACCESS_MESSAGES.ALREADY_HAS_ACCESS);
-
-  await prisma.subtitleAccess.create({
-    data: {
-      userId: viewerId,
-      documentId: docId,
-      accessType: AccessType.VIEW,
-    },
-  });
-};
-
-export const addEditor = async (
-  docId: string,
-  ownerId: string,
-  editorId: string
-) => {
-  const doc = await prisma.subtitleDocument.findUnique({
-    where: { id: docId },
-    include: { SubtitleAccess: true },
-  });
-
-  if (!doc) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
-  if (doc.createdById !== ownerId)
-    throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
-
-  const existingAccess = doc.SubtitleAccess.find(
-    (access) => access.userId === editorId
-  );
+  let message =
+    accessType === AccessType.EDIT
+      ? ACCESS_MESSAGES.ADDED_AS_EDITOR
+      : ACCESS_MESSAGES.ADDED_AS_VIEWER;
 
   if (existingAccess) {
     if (existingAccess.accessType === AccessType.EDIT)
@@ -84,14 +64,55 @@ export const addEditor = async (
       where: { id: existingAccess.id },
       data: { accessType: AccessType.EDIT },
     });
+
+    message = ACCESS_MESSAGES.UPGRADED_TO_EDITOR;
   } else {
     await prisma.subtitleAccess.create({
-      data: {
-        userId: editorId,
-        documentId: docId,
-        accessType: AccessType.EDIT,
-      },
+      data: { userId, documentId: docId, accessType },
     });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { username: true },
+  });
+
+  return { message, username: user?.username || "Unknown" };
+};
+
+export const removeAccess = async (
+  docId: string,
+  ownerId: string,
+  targetUserId: string
+) => {
+  const doc = await prisma.subtitleDocument.findUnique({
+    where: { id: docId },
+    include: { SubtitleAccess: true },
+  });
+
+  if (!doc) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
+  if (doc.createdById !== ownerId)
+    throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
+
+  const existingAccess = doc.SubtitleAccess.find(
+    (access) => access.userId === targetUserId
+  );
+
+  if (!existingAccess) throw new Error(ACCESS_MESSAGES.NO_ACCESS);
+
+  if (existingAccess.accessType === AccessType.EDIT) {
+    await prisma.subtitleAccess.update({
+      where: { id: existingAccess.id },
+      data: { accessType: AccessType.VIEW },
+    });
+
+    return ACCESS_MESSAGES.DOWNGRADED_TO_VIEWER;
+  } else {
+    await prisma.subtitleAccess.delete({
+      where: { id: existingAccess.id },
+    });
+
+    return ACCESS_MESSAGES.REMOVED_ACCESS;
   }
 };
 
@@ -129,8 +150,7 @@ export const deleteDoc = async (docId: string, userId: string) => {
   });
 
   if (!doc) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
-  if (doc.createdById !== userId)
-    throw new Error(SUBTITLE_MESSAGES.FORBIDDEN);
+  if (doc.createdById !== userId) throw new Error(SUBTITLE_MESSAGES.FORBIDDEN);
 
   await prisma.subtitleDocument.delete({ where: { id: docId } });
 };

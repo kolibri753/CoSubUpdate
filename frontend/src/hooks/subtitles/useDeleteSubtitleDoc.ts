@@ -15,14 +15,13 @@ export const useDeleteSubtitleDoc = () => {
 
         const result = await response.json();
         if (response.ok) {
-          toast.success("Subtitle deleted successfully!");
+          toast.success(result.message);
           deleteDoc(id);
         } else {
           toast.error(result.error || "Failed to delete subtitle.");
         }
-      } catch (error) {
-        console.error("Delete error:", error);
-        toast.error("Delete failed. Try again.");
+      } catch (error: any) {
+        toast.error(error.message);
       }
     },
     [deleteDoc]
