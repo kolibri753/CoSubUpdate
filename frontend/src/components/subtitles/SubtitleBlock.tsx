@@ -22,8 +22,8 @@ const SubtitleBlock: React.FC<SubtitleBlockProps> = ({
   onRemove,
 }) => {
   const [content, setContent] = useState(block.text);
-  const [start, setStart] = useState(block.startTime);
-  const [end, setEnd] = useState(block.endTime);
+  const [start, setStart] = useState<number>(Number(block.startTime));
+  const [end, setEnd] = useState<number>(Number(block.endTime));
 
   const handleBlur = () => {
     if (start >= end) {
