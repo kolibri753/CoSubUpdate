@@ -4,8 +4,8 @@ export type SubtitleBlock = {
   id: string;
   docId: string;
   text: string;
-  startTime: string;
-  endTime: string;
+  startTime: number;
+  endTime: number;
 };
 
 interface SubtitleBlocksState {
