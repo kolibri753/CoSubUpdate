@@ -21,7 +21,7 @@ const ContributorItem = ({
     key={userId}
     className={clsx(
       "group flex items-center text-white px-2 py-0.5 rounded-md shadow-md text-[14px]",
-      ACCESS_COLORS[accessType] || "bg-gray-500",
+      ACCESS_COLORS[accessType]?.bg || "bg-gray-500",
       loadingUserId === userId && "opacity-50"
     )}
   >
