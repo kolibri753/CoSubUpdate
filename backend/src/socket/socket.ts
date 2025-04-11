@@ -1,6 +1,6 @@
-import { Server } from "socket.io";
-import http from "http";
 import express from "express";
+import http from "http";
+import { Server } from "socket.io";
 
 const app = express();
 const server = http.createServer(app);
@@ -17,33 +17,51 @@ interface UserSocketInfo {
   profilePic: string;
 }
 
-const userSocketMap: { [userId: string]: UserSocketInfo } = {};
+const docUserMap: Record<string, Record<string, UserSocketInfo>> = {};
 
-export const getReceiverSocketId = (receiverId: string) => {
-  return userSocketMap[receiverId]?.socketId;
-};
+export const getReceiverSocketId = (
+  docId: string,
+  userId: string
+): string | undefined => docUserMap[docId]?.[userId]?.socketId;
 
 io.on("connection", (socket) => {
-  const userId = socket.handshake.query.userId as string;
-  const username = socket.handshake.query.username as string;
-  const profilePic = socket.handshake.query.profilePic as string;
+  const {
+    userId,
+    username,
+    profilePic,
+    docId,
+  } = socket.handshake.query as Record<string, string>;
 
-  if (userId) {
-    userSocketMap[userId] = { socketId: socket.id, username, profilePic };
+  if (!userId || !docId) return;
+
+  if (!docUserMap[docId]) {
+    docUserMap[docId] = {};
   }
 
-  io.emit(
+  docUserMap[docId][userId] = {
+    socketId: socket.id,
+    username,
+    profilePic,
+  };
+
+  socket.join(docId);
+
+  io.to(docId).emit(
     "getOnlineUsers",
-    Object.entries(userSocketMap).map(([id, info]) => ({ id, ...info }))
+    Object.entries(docUserMap[docId]).map(([id, info]) => ({
+      id,
+      ...info,
+    }))
   );
 
   socket.on("disconnect", () => {
-    if (userId) {
-      delete userSocketMap[userId];
-    }
-    io.emit(
+    delete docUserMap[docId][userId];
+    io.to(docId).emit(
       "getOnlineUsers",
-      Object.entries(userSocketMap).map(([id, info]) => ({ id, ...info }))
+      Object.entries(docUserMap[docId] || {}).map(([id, info]) => ({
+        id,
+        ...info,
+      }))
     );
   });
 });

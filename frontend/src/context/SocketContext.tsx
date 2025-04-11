@@ -25,7 +25,7 @@ const SocketContext = createContext<ISocketContext | undefined>(undefined);
 
 export const useSocketContext = (): ISocketContext => {
   const context = useContext(SocketContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error(
       "useSocketContext must be used within a SocketContextProvider"
     );
@@ -36,18 +36,27 @@ export const useSocketContext = (): ISocketContext => {
 const socketURL =
   import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
 
-const SocketContextProvider = ({ children }: { children: ReactNode }) => {
+interface SocketContextProviderProps {
+  children: ReactNode;
+  docId: string;
+}
+
+const SocketContextProvider = ({
+  children,
+  docId,
+}: SocketContextProviderProps) => {
   const socketRef = useRef<Socket | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const { authUser, isLoading } = useAuthContext();
 
   useEffect(() => {
-    if (authUser && !isLoading) {
+    if (authUser && !isLoading && docId) {
       const socket = io(socketURL, {
         query: {
           userId: authUser.id,
           username: authUser.username,
           profilePic: authUser.profilePic,
+          docId,
         },
       });
       socketRef.current = socket;
@@ -57,14 +66,16 @@ const SocketContextProvider = ({ children }: { children: ReactNode }) => {
       });
 
       return () => {
-        socket.close();
+        socket.disconnect();
         socketRef.current = null;
       };
-    } else if (!authUser && !isLoading && socketRef.current) {
-      socketRef.current.close();
+    }
+
+    if (!authUser && socketRef.current) {
+      socketRef.current.disconnect();
       socketRef.current = null;
     }
-  }, [authUser, isLoading]);
+  }, [authUser, isLoading, docId]);
 
   return (
     <SocketContext.Provider value={{ socket: socketRef.current, onlineUsers }}>
