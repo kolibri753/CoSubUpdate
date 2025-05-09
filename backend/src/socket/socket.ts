@@ -19,18 +19,19 @@ interface UserSocketInfo {
 
 const docUserMap: Record<string, Record<string, UserSocketInfo>> = {};
 
+const locks: Record<
+  string,
+  Record<string, { id: string; fullName: string; socketId: string }>
+> = {};
+
 export const getReceiverSocketId = (
   docId: string,
   userId: string
 ): string | undefined => docUserMap[docId]?.[userId]?.socketId;
 
 io.on("connection", (socket) => {
-  const {
-    userId,
-    username,
-    profilePic,
-    docId,
-  } = socket.handshake.query as Record<string, string>;
+  const { userId, username, profilePic, docId } = socket.handshake
+    .query as Record<string, string>;
 
   if (!userId || !docId) return;
 
@@ -48,11 +49,27 @@ io.on("connection", (socket) => {
 
   io.to(docId).emit(
     "getOnlineUsers",
-    Object.entries(docUserMap[docId]).map(([id, info]) => ({
-      id,
-      ...info,
-    }))
+    Object.entries(docUserMap[docId]).map(([id, info]) => ({ id, ...info }))
   );
+
+  socket.emit("currentLocks", locks[docId] || {});
+
+  socket.on("lockBlock", ({ blockId }: { blockId: string }) => {
+    if (!locks[docId]) locks[docId] = {};
+    locks[docId][blockId] = {
+      id: userId,
+      fullName: username,
+      socketId: socket.id,
+    };
+    io.to(docId).emit("blockLocked", { blockId, user: locks[docId][blockId] });
+  });
+
+  socket.on("unlockBlock", ({ blockId }: { blockId: string }) => {
+    if (locks[docId]?.[blockId]) {
+      delete locks[docId][blockId];
+      io.to(docId).emit("blockUnlocked", { blockId });
+    }
+  });
 
   socket.on("disconnect", () => {
     delete docUserMap[docId][userId];
@@ -63,6 +80,15 @@ io.on("connection", (socket) => {
         ...info,
       }))
     );
+
+    const docLocks = locks[docId] || {};
+    Object.keys(docLocks).forEach((blockId) => {
+      if (docLocks[blockId].id === userId) {
+        delete docLocks[blockId];
+        io.to(docId).emit("blockUnlocked", { blockId });
+      }
+    });
+    locks[docId] = docLocks;
   });
 });
 
