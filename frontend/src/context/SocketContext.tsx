@@ -16,9 +16,15 @@ export interface OnlineUser {
   profilePic: string;
 }
 
+export interface LockInfo {
+  blockId: string;
+  user: { id: string; fullName: string; socketId: string };
+}
+
 interface ISocketContext {
   socket: Socket | null;
   onlineUsers: OnlineUser[];
+  locks: Record<string, { id: string; fullName: string; socketId: string }>;
 }
 
 const SocketContext = createContext<ISocketContext | undefined>(undefined);
@@ -45,12 +51,13 @@ const SocketContextProvider = ({
   children,
   docId,
 }: SocketContextProviderProps) => {
-  const socketRef = useRef<Socket | null>(null);
-  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const { authUser, isLoading } = useAuthContext();
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const [locks, setLocks] = useState<ISocketContext["locks"]>({});
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    if (authUser && !isLoading && docId) {
+    if (!isLoading && authUser && docId) {
       const socket = io(socketURL, {
         query: {
           userId: authUser.id,
@@ -65,6 +72,22 @@ const SocketContextProvider = ({
         setOnlineUsers(users);
       });
 
+      socket.on("currentLocks", (current: Record<string, any>) => {
+        setLocks(current);
+      });
+      socket.on("blockLocked", ({ blockId, user }: LockInfo) => {
+        setLocks((l) => ({ ...l, [blockId]: user }));
+      });
+      socket.on("blockUnlocked", ({ blockId }: { blockId: string }) => {
+        setLocks((l) => {
+          const next = { ...l };
+          delete next[blockId];
+          return next;
+        });
+      });
+
+      socket.emit("joinDoc", docId);
+
       return () => {
         socket.disconnect();
         socketRef.current = null;
@@ -78,7 +101,9 @@ const SocketContextProvider = ({
   }, [authUser, isLoading, docId]);
 
   return (
-    <SocketContext.Provider value={{ socket: socketRef.current, onlineUsers }}>
+    <SocketContext.Provider
+      value={{ socket: socketRef.current, onlineUsers, locks }}
+    >
       {children}
     </SocketContext.Provider>
   );
