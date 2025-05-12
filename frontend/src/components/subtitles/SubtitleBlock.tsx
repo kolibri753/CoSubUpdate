@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { Lock } from "lucide-react";
-import { useBlockLock } from "@/hooks/subtitles/useBlockLock";
+import { useBlockLock } from "@/hooks/hooks";
 import { useSocketContext } from "@/context/SocketContext";
 import { useAuthContext } from "@/context/AuthContext";
 import TimeInput from "./TimeInput";
