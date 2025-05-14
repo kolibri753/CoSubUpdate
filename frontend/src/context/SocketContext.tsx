@@ -1,13 +1,15 @@
-import {
+import React, {
   createContext,
   useContext,
   useEffect,
   useRef,
   useState,
-  ReactNode,
 } from "react";
 import io, { Socket } from "socket.io-client";
 import { useAuthContext } from "./AuthContext";
+import useSubtitleBlocksStore, {
+  SubtitleBlock,
+} from "@/store/useSubtitleBlocksStore";
 
 export interface OnlineUser {
   id: string;
@@ -21,92 +23,107 @@ export interface LockInfo {
   user: { id: string; fullName: string; socketId: string };
 }
 
-interface ISocketContext {
-  socket: Socket | null;
+interface SocketContextValue {
   onlineUsers: OnlineUser[];
-  locks: Record<string, { id: string; fullName: string; socketId: string }>;
+  locks: Record<string, LockInfo["user"]>;
+  lockBlock: (blockId: string) => void;
+  unlockBlock: (blockId: string) => void;
+  updateBlock: (
+    blockId: string,
+    data: Partial<Pick<SubtitleBlock, "text" | "startTime" | "endTime">>
+  ) => void;
 }
 
-const SocketContext = createContext<ISocketContext | undefined>(undefined);
+const SocketContext = createContext<SocketContextValue | undefined>(undefined);
 
-export const useSocketContext = (): ISocketContext => {
-  const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error(
-      "useSocketContext must be used within a SocketContextProvider"
-    );
-  }
-  return context;
+export const useSocketContext = () => {
+  const ctx = useContext(SocketContext);
+  if (!ctx) throw new Error("useSocketContext must be inside a SocketProvider");
+  return ctx;
 };
 
-const socketURL =
+const SOCKET_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
 
-interface SocketContextProviderProps {
-  children: ReactNode;
+interface SocketProviderProps {
   docId: string;
+  children: React.ReactNode;
 }
 
-const SocketContextProvider = ({
-  children,
+export default function SocketProvider({
   docId,
-}: SocketContextProviderProps) => {
+  children,
+}: SocketProviderProps) {
   const { authUser, isLoading } = useAuthContext();
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
-  const [locks, setLocks] = useState<ISocketContext["locks"]>({});
+  const [locks, setLocks] = useState<SocketContextValue["locks"]>({});
   const socketRef = useRef<Socket | null>(null);
+
+  const storeUpdateBlock = useSubtitleBlocksStore((s) => s.updateBlock);
 
   useEffect(() => {
     if (!isLoading && authUser && docId) {
-      const socket = io(socketURL, {
+      const socket = io(SOCKET_URL, {
         query: {
+          docId,
           userId: authUser.id,
           username: authUser.username,
           profilePic: authUser.profilePic,
-          docId,
         },
       });
       socketRef.current = socket;
 
-      socket.on("getOnlineUsers", (users: OnlineUser[]) => {
-        setOnlineUsers(users);
-      });
-
-      socket.on("currentLocks", (current: Record<string, any>) => {
-        setLocks(current);
-      });
-      socket.on("blockLocked", ({ blockId, user }: LockInfo) => {
+      socket.on("getOnlineUsers", setOnlineUsers);
+      socket.on("currentLocks", (cur) => setLocks(cur));
+      socket.on("blockLocked", ({ blockId, user }) => {
+        console.log("client received blockLocked →", blockId, user);
         setLocks((l) => ({ ...l, [blockId]: user }));
       });
-      socket.on("blockUnlocked", ({ blockId }: { blockId: string }) => {
+      socket.on("blockUnlocked", ({ blockId }) => {
+        console.log("client received blockUnlocked →", blockId);
         setLocks((l) => {
           const next = { ...l };
           delete next[blockId];
           return next;
         });
       });
-
-      socket.emit("joinDoc", docId);
+      socket.on("blockChanged", (updated: SubtitleBlock) => {
+        storeUpdateBlock(updated);
+      });
 
       return () => {
         socket.disconnect();
         socketRef.current = null;
       };
     }
+  }, [authUser, isLoading, docId, storeUpdateBlock]);
 
-    if (!authUser && socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-    }
-  }, [authUser, isLoading, docId]);
+  const lockBlock = (blockId: string) =>
+    socketRef.current?.emit("lockBlock", { blockId });
+
+  const unlockBlock = (blockId: string) =>
+    socketRef.current?.emit("unlockBlock", { blockId });
+
+  const updateBlock = (
+    blockId: string,
+    data: Partial<Pick<SubtitleBlock, "text" | "startTime" | "endTime">>
+  ) => {
+    storeUpdateBlock({ id: blockId, ...data } as SubtitleBlock);
+
+    socketRef.current?.emit(
+      "blockChanged",
+      { blockId, data },
+      (ack: { success: boolean; error?: string }) => {
+        if (!ack.success) console.error("Save failed:", ack.error);
+      }
+    );
+  };
 
   return (
     <SocketContext.Provider
-      value={{ socket: socketRef.current, onlineUsers, locks }}
+      value={{ onlineUsers, locks, lockBlock, unlockBlock, updateBlock }}
     >
       {children}
     </SocketContext.Provider>
   );
-};
-
-export default SocketContextProvider;
+}

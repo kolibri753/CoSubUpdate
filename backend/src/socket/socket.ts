@@ -1,6 +1,7 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+import * as Subtitles from "../services/subtitles.service.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -70,6 +71,34 @@ io.on("connection", (socket) => {
       io.to(docId).emit("blockUnlocked", { blockId });
     }
   });
+
+  socket.on(
+    "blockChanged",
+    async (
+      payload: {
+        blockId: string;
+        data: Partial<{ text: string; startTime: number; endTime: number }>;
+      },
+      ack: (response: {
+        success: boolean;
+        updated?: any;
+        error?: string;
+      }) => void
+    ) => {
+      try {
+        const updatedBlock = await Subtitles.updateBlock(
+          payload.blockId,
+          payload.data
+        );
+
+        io.to(docId).emit("blockChanged", updatedBlock);
+
+        ack({ success: true, updated: updatedBlock });
+      } catch (err: any) {
+        ack({ success: false, error: err.message });
+      }
+    }
+  );
 
   socket.on("disconnect", () => {
     delete docUserMap[docId][userId];

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Lock } from "lucide-react";
-import { useBlockLock } from "@/hooks/hooks";
 import { useSocketContext } from "@/context/SocketContext";
 import { useAuthContext } from "@/context/AuthContext";
+import { useBlockLock, useUpdateSubtitleBlock } from "@/hooks/hooks";
 import TimeInput from "./TimeInput";
 import MenuDropdown, { MenuAction } from "./MenuDropdown";
 import { SubtitleBlock as BlockType } from "@/store/useSubtitleBlocksStore";
@@ -11,7 +11,6 @@ import { SubtitleBlock as BlockType } from "@/store/useSubtitleBlocksStore";
 interface SubtitleBlockProps {
   block: BlockType;
   index: number;
-  onUpdate: (id: string, data: Partial<BlockType>) => void;
   onInsertBefore: (id: string) => void;
   onInsertAfter: (id: string) => void;
   onRemove: (id: string) => void;
@@ -20,15 +19,14 @@ interface SubtitleBlockProps {
 const SubtitleBlock: React.FC<SubtitleBlockProps> = ({
   block,
   index,
-  onUpdate,
   onInsertBefore,
   onInsertAfter,
   onRemove,
 }) => {
-  const { lock, unlock } = useBlockLock(block.docId, block.id);
-
+  const { lock, unlock } = useBlockLock(block.id);
   const { locks } = useSocketContext();
   const { authUser } = useAuthContext();
+  const update = useUpdateSubtitleBlock();
 
   const [content, setContent] = useState(block.text);
   const [start, setStart] = useState<number>(block.startTime);
@@ -37,7 +35,21 @@ const SubtitleBlock: React.FC<SubtitleBlockProps> = ({
   const locker = locks[block.id];
   const isLockedByOther = Boolean(locker && locker.id !== authUser?.id);
 
+  useEffect(() => {
+    setContent(block.text);
+    setStart(block.startTime);
+    setEnd(block.endTime);
+  }, [block.text, block.startTime, block.endTime]);
+
   const handleBlur = () => {
+    if (
+      content === block.text &&
+      start === block.startTime &&
+      end === block.endTime
+    ) {
+      return;
+    }
+
     if (start >= end) {
       toast.error("Start time must be less than end time");
       return;
@@ -46,7 +58,7 @@ const SubtitleBlock: React.FC<SubtitleBlockProps> = ({
       toast.error("This block is locked by another user.");
       return;
     }
-    onUpdate(block.id, { text: content, startTime: start, endTime: end });
+    update(block.id, { text: content, startTime: start, endTime: end });
   };
 
   const actions: MenuAction[] = [

@@ -1,31 +1,44 @@
 import { useCallback } from "react";
-import useSubtitleBlocksStore, {
-  SubtitleBlock,
-} from "../../store/useSubtitleBlocksStore";
+import toast from "react-hot-toast";
+import { useSocketContext } from "@/context/SocketContext";
+import type { SubtitleBlock } from "@/store/useSubtitleBlocksStore";
 
 export const useUpdateSubtitleBlock = () => {
-  const { updateBlock } = useSubtitleBlocksStore();
+  const { updateBlock } = useSocketContext();
 
-  const updateSubtitleBlock = useCallback(
+  return useCallback(
     async (
       blockId: string,
       data: { text?: string; startTime?: number; endTime?: number }
     ): Promise<SubtitleBlock> => {
+      updateBlock(blockId, data);
       const res = await fetch(`/api/subtitles/block/${blockId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Update failed");
+        const err = await res.json();
+        toast.error(err.error || "Update failed");
+        throw new Error(err.error || "Update failed");
       }
-      const updatedBlock = await res.json();
-      updateBlock(updatedBlock);
+
+      const {
+        message,
+        updatedBlock,
+      }: { message: string; updatedBlock: SubtitleBlock } = await res.json();
+
+      toast.success(message);
+
+      updateBlock(updatedBlock.id, {
+        text: updatedBlock.text,
+        startTime: updatedBlock.startTime,
+        endTime: updatedBlock.endTime,
+      });
+
       return updatedBlock;
     },
     [updateBlock]
   );
-
-  return updateSubtitleBlock;
 };
