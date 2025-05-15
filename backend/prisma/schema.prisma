@@ -16,7 +16,6 @@ model User {
   profilePic       String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
-  changes          ChangeHistory[]
   SubtitleDocument SubtitleDocument[]
   accesses         SubtitleAccess[]
 }
@@ -58,23 +57,7 @@ model SubtitleBlock {
   text       String
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
-  history    ChangeHistory[]
   document   SubtitleDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
-}
-
-model ChangeHistory {
-  id           String        @id @default(cuid())
-  blockId      String
-  modifiedById String
-  oldText      String
-  newText      String
-  oldStartTime Float
-  newStartTime Float
-  oldEndTime   Float
-  newEndTime   Float
-  timestamp    DateTime      @default(now())
-  block        SubtitleBlock @relation(fields: [blockId], references: [id])
-  modifiedBy   User          @relation(fields: [modifiedById], references: [id])
 }
 
 enum Gender {
