@@ -36,9 +36,11 @@ const SubtitleBlock: React.FC<SubtitleBlockProps> = ({
   const isLockedByOther = Boolean(locker && locker.id !== authUser?.id);
 
   useEffect(() => {
-    setContent(block.text);
-    setStart(block.startTime);
-    setEnd(block.endTime);
+    if (!locker || locker.id !== authUser?.id) {
+      setContent(block.text);
+      setStart(block.startTime);
+      setEnd(block.endTime);
+    }
   }, [block.text, block.startTime, block.endTime]);
 
   const handleBlur = () => {
@@ -72,8 +74,8 @@ const SubtitleBlock: React.FC<SubtitleBlockProps> = ({
       className="grid gap-2 border-b py-1
                  grid-cols-[min-content_1fr_min-content] lg:grid-cols-[min-content_14rem_1fr_auto]
                  grid-rows-[auto_auto] items-center"
-      onFocusCapture={lock}
-      onBlurCapture={unlock}
+      onFocus={lock}
+      onBlur={unlock}
     >
       <span className="text-center text-sm font-bold w-6 lg:w-8">
         {index + 1}
