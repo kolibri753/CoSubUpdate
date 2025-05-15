@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { SquarePen, Trash2, Users } from "lucide-react";
 import ContributorList from "./contributors/ContributorList";
 import AnimatedButton from "../common/ExpandableButton";
@@ -28,6 +29,7 @@ const SubtitleDocCard = ({
   const { deleteSubtitleDoc } = useDeleteSubtitleDoc();
   const deleteModalRef = useRef<HTMLDialogElement>(null);
   const shareModalRef = useRef<HTMLDialogElement>(null);
+  const navigate = useNavigate();
 
   const openDeleteModal = () => deleteModalRef.current?.showModal();
   const closeDeleteModal = () => deleteModalRef.current?.close();
@@ -42,6 +44,10 @@ const SubtitleDocCard = ({
     } catch (error) {
       console.error("Failed to delete subtitle document:", error);
     }
+  };
+
+  const handleUpdate = () => {
+    navigate(`/subtitles/${id}`);
   };
 
   return (
@@ -72,6 +78,7 @@ const SubtitleDocCard = ({
           icon={<SquarePen size={20} />}
           text="Update"
           className="btn-accent"
+          onClick={handleUpdate}
         />
         <AnimatedButton
           icon={<Trash2 size={20} />}

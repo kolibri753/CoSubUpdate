@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 
 type AuthUserType = {
   id: string;
+  username: string;
   fullName: string;
   email: string;
   profilePic: string;

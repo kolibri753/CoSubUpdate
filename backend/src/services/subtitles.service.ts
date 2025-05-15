@@ -33,6 +33,34 @@ export const getDocs = async (userId: string) => {
   });
 };
 
+export const getDocById = async (docId: string, userId: string) => {
+  const doc = await prisma.subtitleDocument.findUnique({
+    where: { id: docId },
+    include: {
+      subtitleBlocks: true,
+      createdBy: true,
+      SubtitleAccess: true,
+    },
+  });
+
+  if (!doc) {
+    throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
+  }
+
+  const isOwner = doc.createdById === userId;
+  const hasAccess = doc.SubtitleAccess.some(
+    (a: { userId: string; accessType: AccessType }) =>
+      a.userId === userId &&
+      [AccessType.VIEW, AccessType.EDIT].includes(a.accessType)
+  );
+
+  if (!isOwner && !hasAccess) {
+    throw new Error(ACCESS_MESSAGES.NO_PERMISSION);
+  }
+
+  return doc;
+};
+
 export const updateSubtitleAccess = async (
   docId: string,
   ownerId: string,
@@ -155,6 +183,12 @@ export const deleteDoc = async (docId: string, userId: string) => {
   await prisma.subtitleDocument.delete({ where: { id: docId } });
 };
 
+const validateBlockTiming = (startTime: number, endTime: number) => {
+  if (startTime >= endTime) {
+    throw new Error("Start time must be less than end time");
+  }
+};
+
 export const updateBlock = async (
   blockId: string,
   data: { text?: string; startTime?: number; endTime?: number }
@@ -162,9 +196,20 @@ export const updateBlock = async (
   const block = await prisma.subtitleBlock.findUnique({
     where: { id: blockId },
   });
-  if (!block) throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
+  if (!block) {
+    throw new Error(SUBTITLE_MESSAGES.NOT_FOUND);
+  }
 
-  return prisma.subtitleBlock.update({ where: { id: blockId }, data });
+  if (data.startTime !== undefined && data.endTime !== undefined) {
+    validateBlockTiming(data.startTime, data.endTime);
+  }
+
+  const updatedBlock = await prisma.subtitleBlock.update({
+    where: { id: blockId },
+    data,
+  });
+
+  return updatedBlock;
 };
 
 export const deleteBlock = async (blockId: string) => {

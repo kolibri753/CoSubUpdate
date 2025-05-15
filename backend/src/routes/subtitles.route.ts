@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getAllSubtitleDocs,
+  getSubtitleDocById,
   createSubtitleDoc,
   deleteSubtitleDoc,
   updateSubtitleBlock,
@@ -14,6 +15,7 @@ import upload from "../middleware/uploadSubtitle.js";
 const router = express.Router();
 
 router.get("/", protectRoute, getAllSubtitleDocs);
+router.get("/:id", protectRoute, getSubtitleDocById);
 router.post("/upload", protectRoute, upload.single("file"), createSubtitleDoc);
 router.delete("/:id", protectRoute, deleteSubtitleDoc);
 router.post("/:id/access", protectRoute, addSubtitleAccess);

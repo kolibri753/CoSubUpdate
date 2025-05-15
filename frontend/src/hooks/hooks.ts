@@ -9,4 +9,7 @@ export { useUploadSubtitle } from "./subtitles/useUploadSubtitle";
 export { useDeleteSubtitleDoc } from "./subtitles/useDeleteSubtitleDoc";
 export { useShareSubtitleDoc } from "./subtitles/useShareSubtitleDoc";
 export { useRemoveAccess } from "./subtitles/useRemoveAccess";
+export { useUpdateSubtitleBlock } from "./subtitles/useUpdateSubtitleBlock";
+export { useGetSubtitleBlocks } from "./subtitles/useGetSubtitleBlocks";
+export { useBlockLock } from "./subtitles/useBlockLock";
 export { useContributorActions } from "./contributors/useContributorActions";
